@@ -1,0 +1,8 @@
+{
+    "makefile.makefilePath": "poster/src/Makefile",
+    "latex-workshop.latex.external.build.command": "make",
+    "latex-workshop.latex.external.build.args": [
+        "-C",
+        "poster/src"
+    ]
+}
