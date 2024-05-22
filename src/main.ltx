@@ -15,16 +15,23 @@
 \usepackage{lmodern}
 \usepackage[size=custom,width=120,height=72,scale=1.0]{beamerposter}
 \usetheme{gemini}
-\usecolortheme{mit}
+\usecolortheme{gemini}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tikz}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.14}
+\usepackage{mathtools}
+\usepackage{braket}
+\usepackage[bold-style=ISO]{unicode-math}
+\setmathfont{STIX Two Math}
 
 % ====================
 % Lengths
 % ====================
+
+\setlength{\paperwidth}{118.9cm}
+\setlength{\paperheight}{84.1cm}
 
 % If you have N columns, choose \sepwidth and \colwidth such that
 % (N+1)*\sepwidth + N*\colwidth = \paperwidth
@@ -35,11 +42,14 @@
 
 \newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
 
+\newcommand{\rmmin}[1]{\text{min}}
+\newcommand{\rmmax}[1]{\text{max}}
+
 % ====================
 % Title
 % ====================
 
-\title{Faster Approximate Quantum State Encoding}
+\title{Faster, More Accurate Quantum State Preparation}
 
 \author{Md.~Abdullah Al Mahmud\inst{1} \and Nadman Ashraf Khan\inst{2} \and Tahmid Ashraf Khan\inst{3} \and \textbf{Supervisor:} Dr.~Mahdy Rahman Chowdhury\inst{4}}
 
@@ -55,9 +65,8 @@
 % ====================
 
 \footercontent{
-  North South University \hfill
   ECE Capstone Design Project Showcase, Spring 2024 \hfill
-  \href{https://www.northsouth.edu}{https://www.northsouth.edu}
+  North South University
 }
 % (can be left out to remove footer)
 
@@ -82,197 +91,117 @@
     \begin{column}{\colwidth}
 
       \begin{block}{The Problem}
-        This block catches your eye, so \textbf{important stuff} should probably go
-        here.
+        Loading classical discretized data from an arbitrary function into quantum computers is a critical bottleneck stalling breakthroughs in the application of quantum algorithms and machine learning. Traditional methods can be expensive in terms of resources and time, usually on an exponential scale. Recent works in this area have harnessed some sophisticated methods to drastically reduce this quantum gate complexity, but the work is far from adequate, as the classical subroutines involved in such state preparation methods still impose exponential time overheads.
 
-        Curabitur eu libero vehicula, cursus est fringilla, luctus est. Morbi
-        consectetur mauris quam, at finibus elit auctor ac. Aliquam erat volutpat.
-        Aenean at nisl ut ex ullamcorper eleifend et eu augue. Aenean quis velit
-        tristique odio convallis ultrices a ac odio.
+        $$
+          \ket{\psi_3} = C_0\ket{000} + C_1\ket{001} + \cdots + C_7\ket{111}
+        $$
 
         \begin{figure}
           \centering
-          \begin{tikzpicture}[scale=6]
-            \draw[step=0.25cm,color=gray] (-1,-1) grid (1,1);
-            \draw (1,0) -- (0.2,0.2) -- (0,1) -- (-0.2,0.2) -- (-1,0)
-            -- (-0.2,-0.2) -- (0,-1) -- (0.2,-0.2) -- cycle;
-          \end{tikzpicture}
-          \caption{A figure caption.}
+          \includegraphics[width=1.0\linewidth]{assets/plots/combin.pdf}
+          \caption{Initializing a $3$-qubit quantum register with a normal distribution}
+        \end{figure}
+      \end{block}
+
+      \begin{exampleblock}{Grover–Rudolph: The $O(2^n)$ brute-force solution}
+        \begin{figure}[tb]
+          \centering
+          \includegraphics[width=0.80\linewidth]{assets/images/grover.jpg}
+          \caption{Quantum circuit for the Grover–Rudolph algorithm (source: \cite{nakamura_systematic_2021})}
+          \label{fig:grover}
         \end{figure}
 
-        \begin{itemize}
-          \item \textbf{Fusce dapibus tellus} vel tellus semper finibus. In
-                consequat, nibh sed mattis luctus, augue diam fermentum lectus.
-          \item \textbf{In euismod erat metus} non ex. Vestibulum luctus augue in
-                mi condimentum, at sollicitudin lorem viverra.
-          \item \textbf{Suspendisse vulputate} mauris vel placerat consectetur.
-                Mauris semper, purus ac hendrerit molestie, elit mi dignissim odio, in
-                suscipit felis sapien vel ex.
-        \end{itemize}
+        This technique\cite{grover_creating_2002} divides the total region of a function in range $[x_\rmmin, x_\rmmax]$
+        into $2^{k-1}$ sub-regions where $k \in \{1,2,\dots,N\}$, here $N$ is the number of qubits.
+        To calculate the angle required for $l$th division where $l \in \{0,1,2,\dots,2^{k-1}-1\}$
+        we define $\delta_k \vcentcolon= (x_\rmmax-x_\rmmin)/(2^k-1)$ and we take the ratio of
+        total area of that sub-division and half of the sub-division using this formula.
 
-        Aenean tincidunt risus eros, at gravida lorem sagittis vel. Vestibulum ante
-        ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.
+        \begin{equation}\label{eqn:theta}
+          \theta_l^{k-1}(l) = 2 \arccos \sqrt{\frac%
+            {\int_{x_\rmmin+l\delta_k}^{x_\rmmin+(l+1/2)\delta_k} f(x) \,{\rm d}x}%
+            {\int_{x_\rmmin+l\delta_k}^{x_\rmmin+(l+1)\delta_k} f(x) \,{\rm d}x}
+          }
+        \end{equation}
+
+        As we can see that the time and gate complexity for this circuit grows exponentially with respect to~$n$ and the final complexity reaches to~$O(2^n)$.
+      \end{exampleblock}
+
+    \end{column}
+
+    \separatorcolumn
+
+    \begin{column}{\colwidth}
+
+      \begin{alertblock}{Our solution: $\bm O(2^{k_f(\epsilon)} + n)$}
+        We limit our investigations to functions $f: [0,1] \rightarrow \mathbb{R}^+$ for which $\partial_x^2 f(x)$ don’t contain singularities on the allowed interval. Under these smoothness conditions, the technique proposed by Marin-Sanchez et al.{}\cite{marin-sanchez_quantum_2023} starts from an upper bound on the allowed infidelity~$\epsilon_f$ in the final quantum state, and finds $k_0=k_0(\epsilon_f)$ which serves as the separation point such that all the angles $\theta_l^{k-1}$ for $l=0,1,\dots,2^{k-1}-1$ at the $k$-qubit block with $k\ge k_0$ can be clustered into a single angle $\tilde\theta^{k-1}$. This is possible due to their proven theorem that any pair of angles in such a block differ by no more than a certain small constant for a given function. However, they don’t say anything about the exact way to compute those $k-1$ values.
+
+        We, on the other hand, start out from an allowed upper bound~$\theta_f$ on the difference between pairs of clustered angles and discover $k_c$ such that the $k$-qubit blocks with $k\ge k_0$ can be clustered into a single angle $\pi/2$. This simplifies the implementation from an engineering perspective, as well as possibly make it faster.
+
+        \begin{figure}[tb]
+          \centering
+          \includegraphics[0.5\linewidth]{assets/images/our_circuit.png}
+          \caption{Quantum circuit for our technique}
+          \label{fig:our}
+        \end{figure}
+      \end{alertblock}
+
+      \begin{alertblock}{Deriving $k_f$}
+        Let’s begin with the observation that to achieve $\theta_l^k = \pi/2$ for all $l \in \{0,1,2,\dots,2^{k-1}\}$ from equation~\eqref{eqn:theta}, the areas of two subdivisions must be equal. In other words, in that particular division, $\Delta f(x)$ must approach~$0$. Now, let’s introduce an error term, $\epsilon_f$, ensuring that the derivative of $f(x)$ in any region $[x, x+\Delta x]$ does not vary by more than an infinitesimal fraction~$\epsilon_f$. Then, we proceed to solve for~$\Delta x$.
+        $$\Delta x = \frac{1}{2^{k_f-1}} \Rightarrow k_f = \Big\lceil \log_2\frac{1}{\Delta x} \Big\rceil + 1.$$
+        $$\left| f'(x+\Delta x) - f'(x) \right| \le \epsilon_f$$
+
+        Taylor expansion:
+        $$f'(x + \Delta x) = f'(x) + f''(x)\,\Delta x + \frac{f'''(\xi)}{2} \Delta x^2$$
+        $$\left| f'(x+\Delta x) - f'(x) \right| = \left| f''(x)\,\Delta x + \frac{f'''(\xi)}{2} \Delta x^2 \right|$$
+        $$\left| f''(x) \, \Delta x \right| \le \epsilon_f$$
+        $$\Delta x \le \frac{\epsilon_f}{f''(x)}$$
+
+        Hence, the target $\Delta x$ such that the derivative $f'(x)$ does not vary more than an infinitesimal fraction $\epsilon_f$ over any interval $[x, x+\Delta x]$ is given by
+        $$\Delta x = \frac{\epsilon_f}{\sup_{x \le \xi \le x+\Delta x} \left| f''(\xi) \right|}$$
+        where $\sup_{x \le \xi <= x+\delta x} \left| f''(\xi) \right|$ is the supremum of the absolute value of the second derivative over the interval $[x, x+\Delta x]$.
+      \end{alertblock}
+
+    \end{column}
+
+    \separatorcolumn
+
+    \begin{column}{\colwidth}
+
+      \begin{block}{Results}
+        \heading{Marin-Sanchez et al.{}’s technique versus ours}
+        All results are for $n = 18$~qubits and (in case of our version) $k_f(\epsilon=0.05)=9$.
+
+        \begin{figure}[tb]
+          \centering
+          \includegraphics[width=0.4\linewidth]{assets/images/n18_k0.png}
+          \includegraphics[width=0.4\linewidth]{assets/images/n18_kc.png}
+          \caption{Normal distribution}
+          \label{fig:results1}
+        \end{figure}
+
+        \begin{figure}[tb]
+          \centering
+          \includegraphics[width=0.4\linewidth]{assets/images/esinx_n18_k0.png}
+          \includegraphics[width=0.4\linewidth]{assets/images/esinx_n18_kc.png}
+          \caption{$p(x) = {\rm e}^{\sin x}$}
+          \label{fig:results2}
+        \end{figure}
+
+        \heading{Fidelity}
+        \begin{figure}[tb]
+          \centering
+          \includegraphics[width=0.8\linewidth]{assets/images/fidelity_kc1.pdf}
+          \caption{Fidelity for different $k_c$}
+          \label{fig:results3}
+        \end{figure}
       \end{block}
 
       \begin{block}{References}
         \nocite{*}
         \footnotesize{\bibliographystyle{plain}\bibliography{references.bib}}
       \end{block}
-    \end{column}
-
-    \separatorcolumn
-
-    \begin{column}{\colwidth}
-
-      \begin{exampleblock}{Grover–Rudolph: The canonical brute-force solution}
-        Vivamus congue volutpat elit non semper. Praesent molestie nec erat ac
-        interdum. In quis suscipit erat. \textbf{Phasellus mauris felis, molestie
-          ac pharetra quis}, tempus nec ante. Donec finibus ante vel purus mollis
-        fermentum. Sed felis mi, pharetra eget nibh a, feugiat eleifend dolor. Nam
-        mollis condimentum purus quis sodales. Nullam eu felis eu nulla eleifend
-        bibendum nec eu lorem. Vivamus felis velit, volutpat ut facilisis ac,
-        commodo in metus.
-
-        % image of Grover-Rudolph's circuit
-        \begin{figure}
-          \centering
-          \includegraphics[width=0.80\linewidth]{images/grover.jpg}
-          \caption{Quantum circuit for the Grover–Rudolph algorithm}
-        \end{figure}
-
-        Etiam sit amet tempus lorem, aliquet condimentum velit. Donec et nibh
-        consequat, sagittis ex eget, dictum orci. Etiam quis semper ante. Ut eu
-        mauris purus. Proin nec consectetur ligula. Mauris pretium molestie
-        ullamcorper. Integer nisi neque, aliquet et odio non, sagittis porta justo.
-
-        \begin{enumerate}
-          \item \textbf{Morbi mauris purus}, egestas at vehicula et, convallis
-                accumsan orci. Orci varius natoque penatibus et magnis dis parturient
-                montes, nascetur ridiculus mus.
-          \item \textbf{Cras vehicula blandit urna ut maximus}. Aliquam blandit nec
-                massa ac sollicitudin. Curabitur cursus, metus nec imperdiet bibendum,
-                velit lectus faucibus dolor, quis gravida metus mauris gravida turpis.
-          \item \textbf{Vestibulum et massa diam}. Phasellus fermentum augue non
-                nulla accumsan, non rhoncus lectus condimentum.
-        \end{enumerate}
-      \end{exampleblock}
-
-      \begin{exampleblock}{Marin-Sanchez et al.’s improvements}
-        Et rutrum ex euismod vel. Pellentesque ultricies, velit in fermentum
-        vestibulum, lectus nisi pretium nibh, sit amet aliquam lectus augue vel
-        velit. Suspendisse rhoncus massa porttitor augue feugiat molestie. Sed
-        molestie ut orci nec malesuada. Sed ultricies feugiat est fringilla
-        posuere.
-
-        \begin{figure}
-          \centering
-          \begin{tikzpicture}
-            \begin{axis}[
-                scale only axis,
-                no markers,
-                domain=0:2*pi,
-                samples=100,
-                axis lines=center,
-                axis line style={-},
-                ticks=none]
-              \addplot[red] {sin(deg(x))};
-              \addplot[blue] {cos(deg(x))};
-            \end{axis}
-          \end{tikzpicture}
-          \caption{Another figure caption.}
-        \end{figure}
-
-        Nulla eget sem quam. Ut aliquam volutpat nisi vestibulum convallis. Nunc a
-        lectus et eros facilisis hendrerit eu non urna. Interdum et malesuada fames
-        ac ante \textit{ipsum primis} in faucibus. Etiam sit amet velit eget sem
-        euismod tristique. Praesent enim erat, porta vel mattis sed, pharetra sed
-        ipsum. Morbi commodo condimentum massa, \textit{tempus venenatis} massa
-        hendrerit quis. Maecenas sed porta est. Praesent mollis interdum lectus,
-        sit amet sollicitudin risus tincidunt non.
-
-        \begin{itemize}
-          \item \textbf{Sed consequat} id ante vel efficitur. Praesent congue massa
-                sed est scelerisque, elementum mollis augue iaculis.
-                \begin{itemize}
-                  \item In sed est finibus, vulputate
-                        nunc gravida, pulvinar lorem. In maximus nunc dolor, sed auctor eros
-                        porttitor quis.
-                  \item Fusce ornare dignissim nisi. Nam sit amet risus vel lacus
-                        tempor tincidunt eu a arcu.
-                  \item Donec rhoncus vestibulum erat, quis aliquam leo
-                        gravida egestas.
-                \end{itemize}
-          \item \textbf{Sed luctus, elit sit amet} dictum maximus, diam dolor
-                faucibus purus, sed lobortis justo erat id turpis.
-          \item \textbf{Pellentesque facilisis dolor in leo} bibendum congue.
-                Maecenas congue finibus justo, vitae eleifend urna facilisis at.
-        \end{itemize}
-      \end{exampleblock}
-
-    \end{column}
-
-    \separatorcolumn
-
-    \begin{column}{\colwidth}
-
-      \begin{alertblock}{Our improvements}
-        A different kind of highlighted block.
-
-        $$
-          \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
-        $$
-
-        Interdum et malesuada fames $\{1, 4, 9, \ldots\}$ ac ante ipsum primis in
-        faucibus. Cras eleifend dolor eu nulla suscipit suscipit. Sed lobortis non
-        felis id vulputate.
-
-        \heading{A heading inside a block}
-
-        Praesent consectetur mi $x^2 + y^2$ metus, nec vestibulum justo viverra
-        nec. Proin eget nulla pretium, egestas magna aliquam, mollis neque. Vivamus
-        dictum $\mathbf{u}^\intercal\mathbf{v}$ sagittis odio, vel porta erat
-        congue sed. Maecenas ut dolor quis arcu auctor porttitor.
-
-        \heading{Another heading inside a block}
-
-        Sed augue erat, scelerisque a purus ultricies, placerat porttitor neque.
-        Donec $P(y \mid x)$ fermentum consectetur $\nabla_x P(y \mid x)$ sapien
-        sagittis egestas. Duis eget leo euismod nunc viverra imperdiet nec id
-        justo.
-
-        Class aptent taciti sociosqu ad litora torquent per conubia nostra, per
-        inceptos himenaeos. Phasellus libero enim, gravida sed erat sit amet,
-        scelerisque congue diam. Fusce dapibus dui ut augue pulvinar iaculis.
-
-        \begin{table}
-          \centering
-          \begin{tabular}{l r r c}
-            \toprule
-            \textbf{First column} & \textbf{Second column} & \textbf{Third column} & \textbf{Fourth} \\
-            \midrule
-            Foo                   & 13.37                  & 384,394               & $\alpha$        \\
-            Bar                   & 2.17                   & 1,392                 & $\beta$         \\
-            Baz                   & 3.14                   & 83,742                & $\delta$        \\
-            Qux                   & 7.59                   & 974                   & $\gamma$        \\
-            \bottomrule
-          \end{tabular}
-          \caption{A table caption.}
-        \end{table}
-
-        Donec quis posuere ligula. Nunc feugiat elit a mi malesuada consequat. Sed
-        imperdiet augue ac nibh aliquet tristique. Aenean eu tortor vulputate,
-        eleifend lorem in, dictum urna. Proin auctor ante in augue tincidunt
-        tempor. Proin pellentesque vulputate odio, ac gravida nulla posuere
-        efficitur. Aenean at velit vel dolor blandit molestie. Mauris laoreet
-        commodo quam, non luctus nibh ullamcorper in. Class aptent taciti sociosqu
-        ad litora torquent per conubia nostra, per inceptos himenaeos.
-
-        Nulla varius finibus volutpat. Mauris molestie lorem tincidunt, iaculis
-        libero at, gravida ante. Phasellus at felis eu neque suscipit suscipit.
-        Integer ullamcorper, dui nec pretium ornare, urna dolor consequat libero,
-        in feugiat elit lorem euismod lacus. Pellentesque sit amet dolor mollis,
-        auctor urna non, tempus sem.
-      \end{alertblock}
 
     \end{column}
 
