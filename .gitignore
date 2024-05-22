@@ -363,6 +363,9 @@ TSWLatexianTemp*
 # glossaries
 *.glstex
 
+### LaTeX Patch: latexindent.pl backups ###
+*.latexindent-bak[0-9]*
+
 ### Linux ###
 
 # temporary files which can be created if a process still has a handle open of a deleted file
