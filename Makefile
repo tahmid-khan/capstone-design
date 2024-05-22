@@ -1,13 +1,12 @@
 .PHONY: main clean FORCE
 
-main: poster.pdf
+main: poster
 
-poster.pdf: FORCE
-	latexmk -r src/.latexmkrc \
-	 	-jobname=poster \
-		-pdflatex='lualatex -interaction nonstopmode' -pdflua \
-		-cd -outdir=.. -auxdir=../build \
-		src/main.ltx
+poster: FORCE
+	latexmk -r src/.latexmkrc -pdflua -cd src/main.ltx
 
 clean:
-	latexmk -pdf -C
+	latexmk -r src/.latexmkrc -C -cd src/
+
+pretty:
+	latexindent -l -s -c build -w src/main.ltx

@@ -363,9 +363,6 @@ TSWLatexianTemp*
 # glossaries
 *.glstex
 
-### LaTeX Patch: latexindent.pl backups ###
-*.latexindent-bak[0-9]*
-
 ### Linux ###
 
 # temporary files which can be created if a process still has a handle open of a deleted file
@@ -657,3 +654,12 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/emacs,macos,latex,linux,sublimetext,tex,vim,visualstudiocode,windows
+
+
+### Project-specific ###
+
+# latexindent.pl backups #
+*.latexindent-bak[0-9]*
+
+# PDFs built but not moved to the top level #
+build/*pdf
