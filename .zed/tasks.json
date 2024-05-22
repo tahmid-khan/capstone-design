@@ -1,0 +1,16 @@
+// Static tasks configuration.
+
+[
+  {
+    "label": "Make",
+    "command": "make"
+  },
+  {
+    "label": "Make: clean",
+    "command": "make clean"
+  },
+  {
+    "label": "Make: pretty",
+    "command": "make pretty"
+  }
+]
