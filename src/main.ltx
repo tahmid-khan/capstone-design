@@ -134,29 +134,36 @@
 
     \begin{column}{\colwidth}
 
-      \begin{alertblock}{Our solution: $\bm O(2^{k_f(\epsilon)} + n)$}
+      \begin{alertblock}{Our solution: $O(2^{k_f(\epsilon)} + n)$}
         We limit our investigations to functions $f: [0,1] \rightarrow \mathbb{R}^+$ for which $\partial_x^2 \log{f(x)}$ don’t contain singularities on the allowed interval. Under these smoothness conditions, the technique proposed by Marin-Sanchez et al.{}\cite{marin-sanchez_quantum_2023} modifies the Grover-Rudolph algorithm\cite{grover_creating_2002} in the following way: It starts from an upper bound on the allowed infidelity~$\epsilon_f$ in the final quantum state, and finds $k_0=k_0(\epsilon_f)$ which serves as the separation point such that all the angles $\theta_l^{k-1}$ for $l=0,1,\dots,2^{k-1}-1$ at the $k$-qubit block with $k\ge k_0$ can be clustered into a single angle $\tilde\theta^{k-1}$. This is possible due to their proven theorem that any pair of angles in such a block differ by no more than a certain small constant for a given function. However, they don’t say anything about the exact way to compute those $k-1$ values.
 
         We, on the other hand, start out from an allowed upper bound~$\theta_f$ on the difference between pairs of clustered angles and discover $k_c$ such that the $k$-qubit blocks with $k\ge k_0$ can be clustered into a single angle $\pi/2$. This simplifies the implementation from an engineering perspective, as well as possibly make it faster.
 
         \begin{figure}[tb]
           \centering
-          \includegraphics[0.5\linewidth]{assets/images/our_circuit.png}
+          \includegraphics[width=0.5\linewidth]{assets/images/our_circuit.png}
           \caption{Quantum circuit for our technique}
           \label{fig:our}
         \end{figure}
       \end{alertblock}
 
       \begin{alertblock}{Deriving $k_f$}
-        Let’s begin with the observation that to achieve $\theta_l^k = \pi/2$ for all $l \in \{0,1,2,\dots,2^{k-1}\}$ from equation~\eqref{eqn:theta}, the areas of two subdivisions must be equal. In other words, in that particular division, $\Delta f(x)$ must approach~$0$. Now, let’s introduce an error term, $\epsilon_f$, ensuring that the derivative of $f(x)$ in any region $[x, x+\Delta x]$ does not vary by more than an infinitesimal fraction~$\epsilon_f$. Then, we proceed to solve for~$\Delta x$.
-        $$\Delta x = \frac{1}{2^{k_f-1}} \Rightarrow k_f = \Big\lceil \log_2\frac{1}{\Delta x} \Big\rceil + 1.$$
-        $$\left| f'(x+\Delta x) - f'(x) \right| \le \epsilon_f$$
+        Let’s begin with the observation that to achieve $\theta_l^k = \pi/2$ for all $l \in \{0,1,2,\dots,2^{k-1}-1\}$ from equation~\eqref{eqn:theta}, the areas of two subdivisions must be equal. In other words, in that particular division, $\Delta f(x)$ must approach~$0$. Now, let’s introduce an error term, $\epsilon_f$, ensuring that the derivative of $f(x)$ in any region $[x, x+\Delta x]$ does not vary by more than an infinitesimal fraction~$\epsilon_f$. Then, we proceed to solve for~$\Delta x$.
 
-        Taylor expansion:
-        $$f'(x + \Delta x) = f'(x) + f''(x)\,\Delta x + \frac{f'''(\xi)}{2} \Delta x^2$$
-        $$\left| f'(x+\Delta x) - f'(x) \right| = \left| f''(x)\,\Delta x + \frac{f'''(\xi)}{2} \Delta x^2 \right|$$
+        $$\Delta x = \frac{1}{2^{k_f-1}} \Rightarrow k_f = \Big\lceil \log_2\frac{1}{\Delta x} \Big\rceil + 1.$$
+
+        \begin{equation}\label{eqn:f_diff_eps}
+          \left| f'(x+\Delta x) - f'(x) \right| \le \epsilon_f.
+        \end{equation}
+
+        Assuming $f(x)$ is at least twice differentiable, the Taylor expansion of $f'$ around $x + \Delta x$ is
+        $$f'(x + \Delta x) = f'(x) + f''(x)\,\Delta x + \frac{f'''(\xi)}{2} (\Delta x)^2$$
+        \begin{equation}\label{eqn:f_diff_expansion}
+          \Rightarrow \left| f'(x+\Delta x) - f'(x) \right| = \Biggl| f''(x)\,\Delta x + \frac{f'''(\xi)}{2} (\Delta x)^2 \Biggr|
+        \end{equation}
+        for some $\xi \in (x, x+\Delta x)$. For $\Delta x$ sufficiently small, the term involving $\frac{f'''(\xi)}{2}(\Delta x)^2$ can be made arbitrarily small compared to~$\epsilon_f$. Thus, from \eqref{eqn:f_diff_eps} and~\eqref{eqn:f_diff_expansion}, we can approximate
         $$\left| f''(x) \, \Delta x \right| \le \epsilon_f$$
-        $$\Delta x \le \frac{\epsilon_f}{f''(x)}$$
+        $$\Rightarrow \Delta x \le \frac{\epsilon_f}{f''(x)}.$$
 
         Hence, the target $\Delta x$ such that the derivative $f'(x)$ does not vary more than an infinitesimal fraction $\epsilon_f$ over any interval $[x, x+\Delta x]$ is given by
         $$\Delta x = \frac{\epsilon_f}{\sup_{x \le \xi \le x+\Delta x} \left| f''(\xi) \right|}$$
