@@ -24,6 +24,7 @@
 \usepackage{mathtools}
 \usepackage{braket}
 \usepackage[bold-style=ISO]{unicode-math}
+
 \setmathfont{STIX Two Math}
 
 % ====================
@@ -42,8 +43,8 @@
 
 \newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
 
-\newcommand{\rmmin}[1]{\text{min}}
-\newcommand{\rmmax}[1]{\text{max}}
+\newcommand{\rmmin}{\text{min}}
+\newcommand{\rmmax}{\text{max}}
 
 % ====================
 % Title
@@ -65,8 +66,8 @@
 % ====================
 
 \footercontent{
-  ECE Capstone Design Project Showcase, Spring 2024 \hfill
-  North South University
+  North South University \hfill
+  ECE Capstone Design Project Showcase, Spring 2024
 }
 % (can be left out to remove footer)
 
@@ -76,7 +77,7 @@
 
 % use this to include logos on the left and/or right side of the header:
 % \logoright{\includegraphics[height=7cm]{logo1.pdf}}
-% \logoleft{\includegraphics[height=7cm]{logo2.pdf}}
+\logoleft{\includegraphics[height=7cm]{assets/images/nsu-logo.png}}
 
 % ====================
 % Body
@@ -90,7 +91,7 @@
 
     \begin{column}{\colwidth}
 
-      \begin{block}{The Problem}
+      \begin{block}{The Problem: Quantum State Preparation}
         Loading classical discretized data from an arbitrary function into quantum computers is a critical bottleneck stalling breakthroughs in the application of quantum algorithms and machine learning. Traditional methods can be expensive in terms of resources and time, usually on an exponential scale. Recent works in this area have harnessed some sophisticated methods to drastically reduce this quantum gate complexity, but the work is far from adequate, as the classical subroutines involved in such state preparation methods still impose exponential time overheads.
 
         $$
@@ -104,7 +105,7 @@
         \end{figure}
       \end{block}
 
-      \begin{exampleblock}{Grover–Rudolph: The $O(2^n)$ brute-force solution}
+      \begin{exampleblock}{Grover–Rudolph: The $\mathcal O(2^n)$ brute-force solution}
         \begin{figure}[tb]
           \centering
           \includegraphics[width=0.80\linewidth]{assets/images/grover.jpg}
@@ -125,7 +126,7 @@
           }
         \end{equation}
 
-        As we can see that the time and gate complexity for this circuit grows exponentially with respect to~$n$ and the final complexity reaches to~$O(2^n)$.
+        As we can see that the time and gate complexity for this circuit grows exponentially with respect to~$n$ and the final complexity reaches to~$\mathcal O(2^n)$.
       \end{exampleblock}
 
     \end{column}
@@ -134,7 +135,7 @@
 
     \begin{column}{\colwidth}
 
-      \begin{alertblock}{Our solution: $O(2^{k_f(\epsilon)} + n)$}
+      \begin{alertblock}{Our solution: $\mathcal O(2^{k_f(\epsilon)} + n)$}
         We limit our investigations to functions $f: [0,1] \rightarrow \mathbb{R}^+$ for which $\partial_x^2 \log{f(x)}$ don’t contain singularities on the allowed interval. Under these smoothness conditions, the technique proposed by Marin-Sanchez et al.{}\cite{marin-sanchez_quantum_2023} modifies the Grover-Rudolph algorithm\cite{grover_creating_2002} in the following way: It starts from an upper bound on the allowed infidelity~$\epsilon_f$ in the final quantum state, and finds $k_0=k_0(\epsilon_f)$ which serves as the separation point such that all the angles $\theta_l^{k-1}$ for $l=0,1,\dots,2^{k-1}-1$ at the $k$-qubit block with $k\ge k_0$ can be clustered into a single angle $\tilde\theta^{k-1}$. This is possible due to their proven theorem that any pair of angles in such a block differ by no more than a certain small constant for a given function. However, they don’t say anything about the exact way to compute those $k-1$ values.
 
         We, on the other hand, start out from an allowed upper bound~$\theta_f$ on the difference between pairs of clustered angles and discover $k_c$ such that the $k$-qubit blocks with $k\ge k_0$ can be clustered into a single angle $\pi/2$. This simplifies the implementation from an engineering perspective, as well as possibly make it faster.
