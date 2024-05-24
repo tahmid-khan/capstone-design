@@ -3,10 +3,27 @@
 main: poster
 
 poster: FORCE
-	latexmk -r src/.latexmkrc -pdflua -cd src/main.ltx
+	latexmk -lualatex src/main.ltx
 
 clean:
-	latexmk -r src/.latexmkrc -C -cd src/
+	latexmk -c src/main.ltx
+
+veryclean:
+	latexmk -C src/main.ltx
+
+realclean: veryclean
+	rm -rf build
 
 pretty:
-	latexindent -l -s -c build -w src/main.ltx
+	latexindent -local -silent -checkv -overwriteIfDifferent -cruft=build/latexindent src/*.ltx src/*.bib
+
+lint: style-check lacheck chktex
+
+style-check:
+	style-check.rb src/*.ltx
+
+lacheck:
+	lacheck src/*.ltx
+
+chktex:
+	chktex --quiet src/*.ltx
