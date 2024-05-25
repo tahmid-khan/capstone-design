@@ -1,9 +1,9 @@
-% Gemini theme
-% https://github.com/anishathalye/gemini
-%
-% We try to keep this Overleaf template in sync with the canonical source on
-% GitHub, but it's recommended that you obtain the template directly from
-% GitHub to ensure that you are using the latest version.
+% -*- coding: utf-8; mode: LaTeX; TeX-engine: lualatex -*-
+% vi:filetype=tex
+% !TEX program = latexmk
+% !TEX parameter = -r ../.latexmkrc -lualatex
+% !TEX encoding = UTF-8 Unicode
+% !TEX spellcheck = English
 
 \documentclass[final]{beamer}
 
@@ -13,26 +13,22 @@
 
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage[size=custom,width=120,height=72,scale=1.0]{beamerposter}
+\usepackage[size=custom,width=118.9,height=84.1,scale=1.0]{beamerposter}
 \usetheme{gemini}
 \usecolortheme{gemini}
+\usefonttheme{ours}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tikz}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.14}
+\usepackage{anyfontsize}
 \usepackage{mathtools}
 \usepackage{braket}
-\usepackage[bold-style=ISO]{unicode-math}
-
-\setmathfont{STIX Two Math}
 
 % ====================
 % Lengths
 % ====================
-
-\setlength{\paperwidth}{118.9cm}
-\setlength{\paperheight}{84.1cm}
 
 % If you have N columns, choose \sepwidth and \colwidth such that
 % (N+1)*\sepwidth + N*\colwidth = \paperwidth
@@ -41,8 +37,11 @@
 \setlength{\sepwidth}{0.025\paperwidth}
 \setlength{\colwidth}{0.3\paperwidth}
 
-\newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
+% ====================
+% Definitions
+% ====================
 
+\newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
 \newcommand{\rmmin}{\text{min}}
 \newcommand{\rmmax}{\text{max}}
 
@@ -52,7 +51,12 @@
 
 \title{Faster, More Accurate Quantum State Preparation}
 
-\author{Md.~Abdullah Al Mahmud\inst{1} \and Nadman Ashraf Khan\inst{2} \and Tahmid Ashraf Khan\inst{3} \and \textbf{Supervisor:} Dr.~Mahdy Rahman Chowdhury\inst{4}}
+\author{%
+  Md.~Abdullah Al Mahmud\inst{1}
+  \and Nadman Ashraf Khan\inst{2}
+  \and Tahmid Ashraf Khan\inst{3}
+  \and \textbf{Supervisor:} Dr.~Mahdy Rahman Chowdhury\inst{4}
+}
 
 \institute[shortinst]{%
   \inst{1}\href{mailto:abdullah.mahmud7 @northsouth.edu}{\texttt{abdullah.mahmud7@northsouth.edu}}%
@@ -65,7 +69,7 @@
 % Footer (optional)
 % ====================
 
-\footercontent{
+\footercontent{%
   North South University \hfill
   ECE Capstone Design Project Showcase, Spring 2024
 }
@@ -87,7 +91,7 @@
 
 \begin{frame}[t]
   \begin{columns}[t]
-    \separatorcolumn
+    \separatorcolumn{}
 
     \begin{column}{\colwidth}
 
@@ -105,7 +109,7 @@
         \end{figure}
       \end{block}
 
-      \begin{exampleblock}{Grover–Rudolph: The $\mathcal O(2^n)$ brute-force solution}
+      \begin{exampleblock}{Grover–Rudolph: The $\symbf{O(2^n)}$ brute-force solution}
         \begin{figure}[tb]
           \centering
           \includegraphics[width=0.80\linewidth]{images/grover.jpg}
@@ -120,25 +124,25 @@
         total area of that sub-division and half of the sub-division using this formula.
 
         \begin{equation}\label{eqn:theta}
-          \theta_l^{k-1}(l) = 2 \arccos \sqrt{\frac%
-            {\int_{x_\rmmin+l\delta_k}^{x_\rmmin+(l+1/2)\delta_k} f(x) \,{\rm d}x}%
-            {\int_{x_\rmmin+l\delta_k}^{x_\rmmin+(l+1)\delta_k} f(x) \,{\rm d}x}
+          \theta_l^{k-1}(l) = 2 \cos^{-1} \sqrt{\frac%
+            {\intup_{x_\rmmin+l\delta_k}^{x_\rmmin+(l+1/2)\delta_k} f(x) \,\symup{d}x}%
+            {\intup_{x_\rmmin+l\delta_k}^{x_\rmmin+(l+1)\delta_k} f(x) \,\symup{d}x}
           }
         \end{equation}
 
-        As we can see that the time and gate complexity for this circuit grows exponentially with respect to~$n$ and the final complexity reaches to~$\mathcal O(2^n)$.
+        As we can see that the time and gate complexity for this circuit grows exponentially with increases in~$n$, implying a total time complexity of~$O(2^n)$.
       \end{exampleblock}
 
     \end{column}
 
-    \separatorcolumn
+    \separatorcolumn{}
 
     \begin{column}{\colwidth}
 
-      \begin{alertblock}{Our solution: $\mathcal O(2^{k_f(\epsilon)} + n)$}
-        We limit our investigations to functions $f: [0,1] \rightarrow \mathbb{R}^+$ for which $\partial_x^2 \log{f(x)}$ don’t contain singularities on the allowed interval. Under these smoothness conditions, the technique proposed by Marin-Sanchez et al.{}\cite{marin-sanchez_quantum_2023} modifies the Grover-Rudolph algorithm\cite{grover_creating_2002} in the following way: It starts from an upper bound on the allowed infidelity~$\epsilon_f$ in the final quantum state, and finds $k_0=k_0(\epsilon_f)$ which serves as the separation point such that all the angles $\theta_l^{k-1}$ for $l=0,1,\dots,2^{k-1}-1$ at the $k$-qubit block with $k\ge k_0$ can be clustered into a single angle $\tilde\theta^{k-1}$. This is possible due to their proven theorem that any pair of angles in such a block differ by no more than a certain small constant for a given function. However, they don’t say anything about the exact way to compute those $k-1$ values.
+      \begin{alertblock}{Our solution: $\symbf{O(2^{k_f(\epsilon)} + n)}$}
+        We limit our investigations to functions $f: [0,1] \rightarrow \mathbb{R}^+$ for which $\partial_x^2 \log{f(x)}$ don’t contain singularities on the allowed interval. Under these smoothness conditions, the technique proposed by Marin-Sanchez \textit{et~al.}\cite{marin-sanchez_quantum_2023} modifies the Grover-Rudolph algorithm\cite{grover_creating_2002} in the following way: It starts from an upper bound on the allowed infidelity~$\epsilon_f$ in the final quantum state, and finds $k_0=k_0(\epsilon_f)$ which serves as the separation point such that all the angles $\theta_l^{k-1}$ for $l\in\{0,1,\dots,2^{k-1}-1\}$ at the $k$-qubit block with $k\ge k_0$ can be clustered into a single angle $\tilde\theta^{k-1}$. This is possible due to their proven theorem that any pair of angles in such a block differ by no more than a certain small constant for a given function. However, they don’t say anything about the exact way to compute those $k-1$ values.
 
-        We, on the other hand, start out from an allowed upper bound~$\theta_f$ on the difference between pairs of clustered angles and discover $k_c$ such that the $k$-qubit blocks with $k\ge k_0$ can be clustered into a single angle $\pi/2$. This simplifies the implementation from an engineering perspective, as well as possibly make it faster.
+        We, on the other hand, start out from an allowed upper bound~$\theta_f$ on the difference between pairs of clustered angles and discover $k_c$ such that the $k$-qubit blocks with $k\ge k_0$ can be clustered into a single angle $\symup{\pi}/2$. This simplifies the implementation from an engineering perspective, as well as possibly make it faster.
 
         \begin{figure}[tb]
           \centering
@@ -148,8 +152,8 @@
         \end{figure}
       \end{alertblock}
 
-      \begin{alertblock}{Deriving $k_f$}
-        Let’s begin with the observation that to achieve $\theta_l^k = \pi/2$ for all $l \in \{0,1,2,\dots,2^{k-1}-1\}$ from equation~\eqref{eqn:theta}, the areas of two subdivisions must be equal. In other words, in that particular division, $\Delta f(x)$ must approach~$0$. Now, let’s introduce an error term, $\epsilon_f$, ensuring that the derivative of $f(x)$ in any region $[x, x+\Delta x]$ does not vary by more than an infinitesimal fraction~$\epsilon_f$. Then, we proceed to solve for~$\Delta x$.
+      \begin{alertblock}{Deriving $\symbf{k_f}$}
+        Let’s begin with the observation that to achieve $\theta_l^k = \symup{\pi}/2$ for all $l \in \{0,1,\dots,2^{k-1}-1\}$ from equation~\eqref{eqn:theta}, the areas of two subdivisions must be equal. In other words, in that particular division, $\Delta f(x)$ must approach~$0$. Now, let’s introduce an error term, $\epsilon_f$, ensuring that the derivative of $f(x)$ in any region $[x, x+\Delta x]$ does not vary by more than an infinitesimal fraction~$\epsilon_f$. Then, we proceed to solve for~$\Delta x$.
 
         $$\Delta x = \frac{1}{2^{k_f-1}} \Rightarrow k_f = \Big\lceil \log_2\frac{1}{\Delta x} \Big\rceil + 1.$$
 
@@ -160,9 +164,9 @@
         Assuming $f(x)$ is at least twice differentiable, the Taylor expansion of $f'$ around $x + \Delta x$ is
         $$f'(x + \Delta x) = f'(x) + f''(x)\,\Delta x + \frac{f'''(\xi)}{2} (\Delta x)^2$$
         \begin{equation}\label{eqn:f_diff_expansion}
-          \Rightarrow \left| f'(x+\Delta x) - f'(x) \right| = \Biggl| f''(x)\,\Delta x + \frac{f'''(\xi)}{2} (\Delta x)^2 \Biggr|
+          \Rightarrow \bigl| f'(x+\Delta x) - f'(x) \bigr| = \biggl| f''(x)\,\Delta x + \frac{f'''(\xi)}{2} (\Delta x)^2 \biggr|
         \end{equation}
-        for some $\xi \in (x, x+\Delta x)$. For $\Delta x$ sufficiently small, the term involving $\frac{f'''(\xi)}{2}(\Delta x)^2$ can be made arbitrarily small compared to~$\epsilon_f$. Thus, from \eqref{eqn:f_diff_eps} and~\eqref{eqn:f_diff_expansion}, we can approximate
+        for some $\xi \in (x, x+\Delta x)$. For $\Delta x$ sufficiently small, the term involving $\frac{f'''(\xi)}{2}(\Delta x)^2$ can be made arbitrarily small compared to~$\epsilon_f$. Thus, from~\eqref{eqn:f_diff_eps} and~\eqref{eqn:f_diff_expansion}, we can approximate
         $$\left| f''(x) \, \Delta x \right| \le \epsilon_f$$
         $$\Rightarrow \Delta x \le \frac{\epsilon_f}{f''(x)}.$$
 
@@ -173,12 +177,12 @@
 
     \end{column}
 
-    \separatorcolumn
+    \separatorcolumn{}
 
     \begin{column}{\colwidth}
 
       \begin{block}{Results}
-        \heading{Marin-Sanchez et al.{}’s technique versus ours}
+        \heading{Marin-Sanchez \textit{et~al.}’s technique versus ours}
         All results are for $n = 18$~qubits and (in case of our version) $k_f(\epsilon=0.05)=9$.
 
         \begin{figure}[tb]
@@ -193,7 +197,7 @@
           \centering
           \includegraphics[width=0.4\linewidth]{images/esinx_n18_k0.png}
           \includegraphics[width=0.4\linewidth]{images/esinx_n18_kc.png}
-          \caption{$p(x) = {\rm e}^{\sin x}$}
+          \caption{$p(x) = \symup{e}^{\sin x}$}
           \label{fig:results2}
         \end{figure}
 
@@ -207,13 +211,12 @@
       \end{block}
 
       \begin{block}{References}
-        \nocite{*}
-        \footnotesize{\bibliographystyle{plain}\bibliography{references.bib}}
+        % \nocite{*}
+        \footnotesize{\bibliographystyle{ieeetr}\bibliography{references.bib}}
       \end{block}
-
     \end{column}
 
-    \separatorcolumn
+    \separatorcolumn{}
   \end{columns}
 \end{frame}
 
